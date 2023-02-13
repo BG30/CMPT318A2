@@ -31,24 +31,29 @@ average_smoothed_week <- summarise(df, Global_intensity_mean = mean(Global_inten
 ggplot(average_smoothed_week, aes(x = week_num, y = Global_intensity_mean) ) +
   geom_point()
 
-
+# merge average_smoothed_week and df, df will contain the column of Global_intensity_mean
 df <-
   merge(df, average_smoothed_week, by = "week_num")
-
 df <- na.omit(df)
 
+# get mean absolute deviation(MAD) from average_smoothed_week and save the score
 df$MAD_score <-
    abs(df$Global_intensity_smoothed - df$Global_intensity_mean)
 
+# rank all weeks by MAD score
 ranked_weeks <-
   df[order(df$MAD_score, decreasing = TRUE), ]
+
+# get the most and least anomalous week
 most_anomalous_week <- ranked_weeks[1, "week_num"]
 least_anomalous_week <- ranked_weeks[nrow(ranked_weeks), "week_num"]
 
+# save date of average, least anomalous and most anomalous week
 least_anomalous_week_data = subset(df, week_num == most_anomalous_week)
 most_anomalous_week_data = subset(df, week_num == least_anomalous_week)
 average_smoothed_week_data = subset(df, week_num == 6)
 
+# create new data to put 3 of them (average, least anomalous and most anomalous week) together
 three_week_data <- data.frame(most_anomalous_week_Gim = least_anomalous_week_data$Global_intensity_mean[0:10078], 
                               least_anomalous_week_Gim = most_anomalous_week_data$Global_intensity_mean[0:10078],
                               average_smoothed_week_Gim = average_smoothed_week_data$Global_intensity_mean[0:10078])
@@ -61,6 +66,7 @@ three_week_data$ID <- seq.int(nrow(three_week_data))
 # three_week_data$a_smoothed <- 
 #   rollmean(three_week_data$average_smoothed_week_Gim, k = 50, na.pad = TRUE)
 
+# plot average smoothened week, least anomalous week, most anomalous week all together
 ggplot(three_week_data, aes(x = ID)) +
   geom_line(aes(y = average_smoothed_week_Gim), color = "black") +
   geom_line(aes(y = least_anomalous_week_Gim), color = "blue") +
